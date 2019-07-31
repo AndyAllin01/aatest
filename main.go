@@ -274,6 +274,7 @@ func main() {
 		http.HandleFunc("/", indexHandler)
 		http.HandleFunc(conf.Endpoint, inboundHandler)
 		port := os.Getenv("PORT")
+		fmt.Println("ENVIRNMENT PORT :", port)
 		if port == "" {
 			port = conf.Port
 		}
