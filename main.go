@@ -279,7 +279,18 @@ func main() {
 			port = conf.Port
 		}
 		if err := http.ListenAndServe(port, nil); err != nil {
-			log.Fatalln("Error")
+			log.Fatalln("ListenAndServe Error")
 		}
 	}
 }
+/*
+func determineListenAddress() (string, error) {
+	//##//	log.Println("DETERMINELISTENADDRESS")
+	port := os.Getenv("PORT")
+	if port == "" {
+		//		port = "80"
+		port = os.Getenv("PORT")
+	}
+	return ":" + port, nil
+	//return ":8080", nil //run initial tests locally
+}*/
