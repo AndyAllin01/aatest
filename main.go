@@ -171,6 +171,12 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 				log.Fatal(err)
 			}
 			value, err := ioutil.ReadAll(p)
+
+			log.Println(" ////////////////////////////////////////////////////////////////////////// ")
+			log.Println(" HAVE WE JUST READ THE ENTIRE EMAIL HERE? ")
+			log.Println(" ////////////////////////////////////////////////////////////////////////// ")
+			log.Println(" IF SO, IT'S IN THE value FIELD ", value)
+
 			if err != nil {
 				log.Fatal(err)
 			}
