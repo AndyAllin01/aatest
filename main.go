@@ -129,7 +129,9 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Println(" ################## inboundHandler ################## AAAA")
 	if strings.HasPrefix(mediaType, "multipart/") {
+		log.Println(" ################## inboundHandler ################## BBBB")
 		mr := multipart.NewReader(request.Body, params["boundary"])
 		parsedEmail := make(map[string]string)
 		emailHeader := make(map[string]string)
@@ -146,9 +148,12 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 				}
 				binaryFiles[p.FileName()] = contents
 			}
+			log.Println(" ################## inboundHandler ################## CCCC")
 			if err == io.EOF {
+				log.Println(" ################## inboundHandler ################## DDDD")
 				// We have finished parsing, do something with the parsed data
 				printMap(parsedEmail, "")
+				log.Println(" ################## inboundHandler ################## EEEE")
 				printMap(emailHeader, "e")
 
 				for key, value := range binaryFiles {
@@ -161,6 +166,7 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 				response.WriteHeader(http.StatusOK)
 				return
 			}
+			log.Println(" ################## inboundHandler ################## FFFF")
 			if err != nil {
 				log.Fatal(err)
 			}
