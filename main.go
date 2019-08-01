@@ -160,8 +160,11 @@ func formatReqString(o OrderInfo) string {
 	}
 	params := url.Values{}
 	params.Add("format", "json")
+	log.Println("=================================", LocationIQKey)
 	params.Add("key", LocationIQKey)
+	log.Println("=================================", o.FullAddr)
 	loc := o.FullAddr
+	log.Println("=================================", loc)
 	params.Add("q", loc)
 	baseURL.RawQuery = params.Encode()
 	return baseURL.String()
