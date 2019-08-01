@@ -393,6 +393,7 @@ func main() {
 		}
 	} else {
 		conf := loadConfig("./conf.json")
+		LocationIQKey = conf.LocationIQKey
 		http.HandleFunc("/", indexHandler)
 		http.HandleFunc(conf.Endpoint, inboundHandler)
 		port, err := determineListenAddress()
