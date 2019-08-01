@@ -33,6 +33,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/sendgrid/rest"
@@ -136,23 +137,155 @@ func handleHeaders(value []byte, emailHeader map[string]string) {
 }
 
 func printMap(inputMap map[string]string, prefix string) {
+	var str, htmlString string
 	for key, value := range inputMap {
 		if key == "from" || key == "html" {
 			fmt.Println(prefix, "Key:", key, " === ", prefix, "Value:", value)
 		}
 		if key == "from" {
 			p1 := strings.Index(value, "<")
-			str := value[p1+1:]
+			str = value[p1+1:]
 			str = str[:len(str)-1]
 			log.Println("TRIMMED STRING ", str)
 			//from email processing
 		}
 		if key == "html" {
-			htmlString := value
+			htmlString = value
 			fmt.Println("htmlString ", htmlString)
 			//html processing
 		}
 	}
+	filledStruct := composeStruct(htmlString, str)
+	log.Printf("FILLED STRUCT %+v\n", filledStruct)
+}
+
+//composeStruct receives a string of html and parses this into readable
+//key/value map which is then passed to fillStruct function
+func composeStruct(str, oEmail string) OrderInfo {
+	htmlMap := make(map[string]string)
+	//chop up HTML by <br>
+	stringSlice := strings.Split(str, "<br>")
+	//for each "line", see if it contains a key/value pair
+	for i := 0; i < len(stringSlice); i++ {
+		if strings.Contains(stringSlice[i], ": <") {
+			//don't lose zip code by splitting on ":" so replace with space
+			stringSlice[i] = strings.Replace(stringSlice[i], "zip:", "zip ", -1)
+			keyVal := strings.Split(stringSlice[i], ": ")
+			//strip out <b>
+			key := strings.Replace(keyVal[0], "<b>", "", -1)
+			val := strings.Replace(keyVal[1], "<b>", "", -1)
+			//remove anything after and incl </b>
+			valx := strings.Split(val, "</b>")
+			val = valx[0]
+			//remove and trim <span> formatting
+			if strings.Contains(val, "span") {
+				//remove up to 1st > and after 2nd <
+				i := strings.Index(val, ">")
+				val = val[i+1:]
+				i = strings.Index(val, "<")
+				val = val[:i]
+			}
+			if key == "Order by" {
+				//split order by field into name and number
+				oName := strings.Split(val, " - ")
+				htmlMap["OrderName"] = oName[0]
+				htmlMap["OrderNumber"] = oName[1]
+			} else if key == "Delivery address" {
+				//split order by field into address components
+				htmlMap["FullAddr"] = val
+				val += ",,,,,,,,"
+				oAddr := strings.Split(val, ",")
+				htmlMap["Addr1"] = oAddr[0]
+				htmlMap["Addr2"] = oAddr[1]
+				htmlMap["Addr3"] = oAddr[2]
+				htmlMap["Addr4"] = oAddr[3]
+				htmlMap["Addr5"] = oAddr[4]
+				htmlMap["Addr6"] = oAddr[5]
+				htmlMap["Addr7"] = oAddr[6]
+				htmlMap["Addr8"] = oAddr[7]
+			} else {
+				htmlMap[key] = val
+			}
+		}
+	}
+	order := fillStruct(htmlMap, oEmail)
+	//	fmt.Println(order)
+	return order
+}
+
+//fillStruct populates the orderInfo struct with elements parsed from the received HTML
+func fillStruct(m map[string]string, oEmail string) OrderInfo {
+	//convert string fields from the html into float64
+	fDeliveryPrice, _ := strconv.ParseFloat(m["Delivery price"], 64)
+	fDeliveryTip, _ := strconv.ParseFloat(m["Delivery tip"], 64)
+	fCash, _ := strconv.ParseFloat(m["Cash"], 64)
+	fSubTotal, _ := strconv.ParseFloat(m["Sub Total"], 64)
+	fTax, _ := strconv.ParseFloat(m["Tax"], 64)
+	fTotal, _ := strconv.ParseFloat(m["Total"], 64)
+
+	d := DelivAddr{
+		Addr1: m["Addr1"],
+		Addr2: m["Addr2"],
+		Addr3: m["Addr3"],
+		Addr4: m["Addr4"],
+		Addr5: m["Addr5"],
+		Addr6: m["Addr6"],
+		Addr7: m["Addr7"],
+		Addr8: m["Addr8"],
+	}
+
+	//format OrderInfo struct
+	o := OrderInfo{
+		TransactionID:           m["Transaction Id"],
+		AccountIdentifier:       oEmail,
+		DeliveryTime:            m["Delivery time"],
+		FullAddr:                m["FullAddr"],
+		DeliveryAddress:         d,
+		DeliveryAddressComments: m["Delivery address comments"],
+		Size:                    m["Size"],
+		DeliveryPrice:           fDeliveryPrice,
+		DeliveryTip:             fDeliveryTip,
+		Cash:                    fCash,
+		SubTotal:                fSubTotal,
+		Tax:                     fTax,
+		Total:                   fTotal,
+		OrderName:               m["OrderName"],
+		OrderNumber:             m["OrderNumber"],
+		OrderTimeOfCust:         m["Order time of customer"],
+	}
+	return o
+}
+
+//DelivAddr contains up to 8 lines of address
+type DelivAddr struct {
+	Addr1 string
+	Addr2 string
+	Addr3 string
+	Addr4 string
+	Addr5 string
+	Addr6 string
+	Addr7 string
+	Addr8 string
+}
+
+//OrderInfo contains details scraped from the email (parsed by sendgrid)
+type OrderInfo struct {
+	TransactionID           string
+	AccountIdentifier       string
+	DeliveryTime            string
+	FullAddr                string
+	DeliveryAddress         DelivAddr
+	DeliveryAddressComments string
+	Size                    string
+	DeliveryPrice           float64
+	DeliveryTip             float64
+	Cash                    float64
+	SubTotal                float64
+	Tax                     float64
+	Total                   float64
+	OrderName               string
+	OrderNumber             string
+	OrderTimeOfCust         string
 }
 
 func main() {
