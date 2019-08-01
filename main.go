@@ -142,7 +142,9 @@ func printMap(inputMap map[string]string, prefix string) {
 		}
 		if key == "from" {
 			p1 := strings.Index(value, "<")
-			log.Println("TRIM STRING ", value[p1:])
+			str := value[p1+1:]
+			str = str[:len(str)-1]
+			log.Println("TRIMMED STRING ", str)
 			//from email processing
 		}
 		if key == "html" {
