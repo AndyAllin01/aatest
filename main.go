@@ -225,7 +225,9 @@ func printMap(inputMap map[string]string, prefix string) {
 	log.Println(" ################## printMap ##################")
 	log.Println(" ################## inputMap ##################", inputMap)
 	for key, value := range inputMap {
-		fmt.Println(prefix, "Key:", key, " ", prefix, "Value:", value)
+		if key == "from" || key == "html" {
+			fmt.Println(prefix, "Key:", key, " ", prefix, "Value:", value)
+		}
 	}
 }
 
