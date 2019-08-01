@@ -154,16 +154,17 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 				printMap(parsedEmail, "")
 
 				//ONLY NEED parsedEmail?
+				/*
+					log.Println(" ################## inboundHandler ################## EEEE")
+					printMap(emailHeader, "e")
 
-				log.Println(" ################## inboundHandler ################## EEEE")
-				printMap(emailHeader, "e")
+					for key, value := range binaryFiles {
+						fmt.Println("bKey:", key, " bValue:", value)
+					}
 
-				for key, value := range binaryFiles {
-					fmt.Println("bKey:", key, " bValue:", value)
-				}
+					printMap(parsedRawEmail, "r")
+					printMap(rawFiles, "rf")*/
 
-				printMap(parsedRawEmail, "r")
-				printMap(rawFiles, "rf")
 				// Twilio SendGrid needs a 200 OK response to stop POSTing
 				response.WriteHeader(http.StatusOK)
 				return
