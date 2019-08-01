@@ -152,6 +152,9 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 				log.Println(" ################## inboundHandler ################## DDDD")
 				// We have finished parsing, do something with the parsed data
 				printMap(parsedEmail, "")
+
+				//ONLY NEED parsedEmail?
+
 				log.Println(" ################## inboundHandler ################## EEEE")
 				printMap(emailHeader, "e")
 
@@ -219,6 +222,7 @@ func handleHeaders(value []byte, emailHeader map[string]string) {
 
 func printMap(inputMap map[string]string, prefix string) {
 	log.Println(" ################## printMap ##################")
+	log.Println(" ################## inputMap ##################", inputMap)
 	for key, value := range inputMap {
 		fmt.Println(prefix, "Key:", key, " ", prefix, "Value:", value)
 	}
