@@ -1,5 +1,5 @@
 {
     "endpoint": "/inbound",
-    "port": ":8000"
+    "port": ":8000",
     "locationiqkey": "e397dae178546d"
 }
