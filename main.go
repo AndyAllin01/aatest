@@ -64,6 +64,7 @@ func loadConfig(path string) configuration {
 	if err != nil {
 		log.Fatal("Config Parse Error: ", err)
 	}
+	log.Println("########### CONFIG ##############", conf)
 	return conf
 }
 
