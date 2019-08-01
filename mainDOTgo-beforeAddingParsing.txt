@@ -24,7 +24,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -65,18 +64,35 @@ func indexHandler(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
+/*func getBoundary(value string, contentType string) (string, *strings.Reader) {
+	log.Println(" ################## getBoundary ##################")
+	body := strings.NewReader(value)
+	bodySplit := strings.Split(string(value), contentType)
+	scanner := bufio.NewScanner(strings.NewReader(bodySplit[1]))
+	var lines []string
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+		break
+	}
+	boundary := lines[0][9:]
+	return boundary, body
+}*/
+
 func inboundHandler(response http.ResponseWriter, request *http.Request) {
 	log.Println(" ################## inboundHandler ##################")
 	mediaType, params, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
 	if err != nil {
 		log.Fatal(err)
 	}
+	//	log.Println(" ################## inboundHandler ################## AAAA")
 	if strings.HasPrefix(mediaType, "multipart/") {
+		//		log.Println(" ################## inboundHandler ################## BBBB")
 		mr := multipart.NewReader(request.Body, params["boundary"])
 		parsedEmail := make(map[string]string)
 		emailHeader := make(map[string]string)
 		binaryFiles := make(map[string][]byte)
-
+		//	parsedRawEmail := make(map[string]string)
+		//	rawFiles := make(map[string]string)
 		for {
 			p, err := mr.NextPart()
 			// We have found an attachment with binary data
@@ -87,20 +103,41 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 				}
 				binaryFiles[p.FileName()] = contents
 			}
+			//			log.Println(" ################## inboundHandler ################## CCCC")
 			if err == io.EOF {
+				//				log.Println(" ################## inboundHandler ################## DDDD")
 				// We have finished parsing, do something with the parsed data
 				fmt.Printf("PARSED EMAIL %+v\n", parsedEmail)
 
 				printMap(parsedEmail, "")
 
+				//ONLY NEED parsedEmail?
+				/*
+					log.Println(" ################## inboundHandler ################## EEEE")
+					printMap(emailHeader, "e")
+
+					for key, value := range binaryFiles {
+						fmt.Println("bKey:", key, " bValue:", value)
+					}
+
+					printMap(parsedRawEmail, "r")
+					printMap(rawFiles, "rf")*/
+
 				// Twilio SendGrid needs a 200 OK response to stop POSTing
 				response.WriteHeader(http.StatusOK)
 				return
 			}
+			//			log.Println(" ################## inboundHandler ################## FFFF")
 			if err != nil {
 				log.Fatal(err)
 			}
 			value, err := ioutil.ReadAll(p)
+
+			//			log.Println(" ////////////////////////////////////////////////////////////////////////// ")
+			//			log.Println(" HAVE WE JUST READ THE ENTIRE EMAIL HERE? ")
+			//			log.Println(" ////////////////////////////////////////////////////////////////////////// ")
+			//			log.Println(" IF SO, IT'S IN THE value FIELD ", string(value))
+
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -120,12 +157,17 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 			// Since we have parsed the headers, we can delete the original
 			delete(parsedEmail, "headers")
 
+			// We have a raw message
+			/*		if header == "email" {
+					handleRawEmail(value, parsedRawEmail, rawFiles)
+				}*/
 			// Since we've parsed this header, we can delete the original
 			delete(parsedEmail, "email")
 		}
 	}
 }
 func handleHeaders(value []byte, emailHeader map[string]string) {
+	log.Println(" ################## handleHeaders ##################")
 	s := strings.Split(string(value), "\n")
 	var a []string
 	for _, v := range s {
@@ -138,12 +180,55 @@ func handleHeaders(value []byte, emailHeader map[string]string) {
 }
 
 func printMap(inputMap map[string]string, prefix string) {
+	log.Println(" ################## printMap ##################")
+	//	log.Println(" ################## inputMap ##################", inputMap)
 	for key, value := range inputMap {
 		if key == "from" || key == "html" {
+			//orig line			fmt.Println(prefix, "Key:", key, " ", prefix, "Value:", value)
 			fmt.Println(prefix, "Key:", key, " === ", prefix, "Value:", value)
 		}
 	}
 }
+
+/*func handleRawEmail(value []byte, parsedRawEmail map[string]string, rawFiles map[string]string) {
+	log.Println(" ################## handleRawEmail ##################")
+	boundary, body := getBoundary(string(value), "Content-Type: multipart/mixed; ")
+	raw := multipart.NewReader(body, boundary)
+	for {
+		next, err := raw.NextPart()
+		if err == io.EOF {
+			// We have finished parsing
+			break
+		}
+		value, err := ioutil.ReadAll(next)
+		if err != nil {
+			log.Fatal(err)
+		}
+		header := next.Header.Get("Content-Type")
+
+		// Parse the headers
+		if strings.Contains(header, "multipart/alternative") {
+			boundary, body := getBoundary(string(value), "Content-Type: multipart/alternative; ")
+			raw := multipart.NewReader(body, boundary)
+			for {
+				next, err := raw.NextPart()
+				if err == io.EOF {
+					// We have finished parsing
+					break
+				}
+				value, err = ioutil.ReadAll(next)
+				if err != nil {
+					log.Fatal(err)
+				}
+				header = next.Header.Get("Content-Type")
+				parsedRawEmail[header] = string(value)
+			}
+		} else {
+			// It's a base64 encoded attachment
+			rawFiles[header] = string(value)
+		}
+	}
+}*/
 
 func main() {
 	log.Println(" ################## main ##################")
@@ -190,9 +275,11 @@ func main() {
 }
 
 func determineListenAddress() (string, error) {
+	log.Println(" ################## determineListenAddress ##################")
 	port := os.Getenv("PORT")
 	if port == "" {
-		return "", errors.New("unable to get port information")
+		port = os.Getenv("PORT")
 	}
 	return ":" + port, nil
+	//return ":8080", nil //run initial tests locally
 }
