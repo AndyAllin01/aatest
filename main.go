@@ -128,9 +128,9 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(" ################## inboundHandler ################## AAAA")
+	//	log.Println(" ################## inboundHandler ################## AAAA")
 	if strings.HasPrefix(mediaType, "multipart/") {
-		log.Println(" ################## inboundHandler ################## BBBB")
+		//		log.Println(" ################## inboundHandler ################## BBBB")
 		mr := multipart.NewReader(request.Body, params["boundary"])
 		parsedEmail := make(map[string]string)
 		emailHeader := make(map[string]string)
@@ -147,9 +147,9 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 				}
 				binaryFiles[p.FileName()] = contents
 			}
-			log.Println(" ################## inboundHandler ################## CCCC")
+			//			log.Println(" ################## inboundHandler ################## CCCC")
 			if err == io.EOF {
-				log.Println(" ################## inboundHandler ################## DDDD")
+				//				log.Println(" ################## inboundHandler ################## DDDD")
 				// We have finished parsing, do something with the parsed data
 				printMap(parsedEmail, "")
 
@@ -169,16 +169,16 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 				response.WriteHeader(http.StatusOK)
 				return
 			}
-			log.Println(" ################## inboundHandler ################## FFFF")
+			//			log.Println(" ################## inboundHandler ################## FFFF")
 			if err != nil {
 				log.Fatal(err)
 			}
 			value, err := ioutil.ReadAll(p)
 
-			log.Println(" ////////////////////////////////////////////////////////////////////////// ")
-			log.Println(" HAVE WE JUST READ THE ENTIRE EMAIL HERE? ")
-			log.Println(" ////////////////////////////////////////////////////////////////////////// ")
-			log.Println(" IF SO, IT'S IN THE value FIELD ", string(value))
+			//			log.Println(" ////////////////////////////////////////////////////////////////////////// ")
+			//			log.Println(" HAVE WE JUST READ THE ENTIRE EMAIL HERE? ")
+			//			log.Println(" ////////////////////////////////////////////////////////////////////////// ")
+			//			log.Println(" IF SO, IT'S IN THE value FIELD ", string(value))
 
 			if err != nil {
 				log.Fatal(err)
@@ -223,10 +223,11 @@ func handleHeaders(value []byte, emailHeader map[string]string) {
 
 func printMap(inputMap map[string]string, prefix string) {
 	log.Println(" ################## printMap ##################")
-	log.Println(" ################## inputMap ##################", inputMap)
+	//	log.Println(" ################## inputMap ##################", inputMap)
 	for key, value := range inputMap {
 		if key == "from" || key == "html" {
-			fmt.Println(prefix, "Key:", key, " ", prefix, "Value:", value)
+			//orig line			fmt.Println(prefix, "Key:", key, " ", prefix, "Value:", value)
+			fmt.Println(prefix, "Key:", key, " === ", prefix, "Value:", value)
 		}
 	}
 }
