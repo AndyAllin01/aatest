@@ -273,7 +273,11 @@ func main() {
 		conf := loadConfig("./conf.json")
 		http.HandleFunc("/", indexHandler)
 		http.HandleFunc(conf.Endpoint, inboundHandler)
-		port := os.Getenv("PORT")
+		port, err := determineListenAddress()
+		if err != nil {
+			log.Println("error detecting port")
+		}
+		//port := os.Getenv("PORT")
 		fmt.Println("ENVIRNMENT PORT :", port)
 		if port == "" {
 			port = conf.Port
@@ -283,7 +287,7 @@ func main() {
 		}
 	}
 }
-/*
+
 func determineListenAddress() (string, error) {
 	//##//	log.Println("DETERMINELISTENADDRESS")
 	port := os.Getenv("PORT")
@@ -293,4 +297,4 @@ func determineListenAddress() (string, error) {
 	}
 	return ":" + port, nil
 	//return ":8080", nil //run initial tests locally
-}*/
+}
