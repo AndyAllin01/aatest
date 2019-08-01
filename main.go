@@ -44,7 +44,6 @@ type configuration struct {
 }
 
 func loadConfig(path string) configuration {
-	log.Println(" ################## loadConfig ##################")
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal("Config File Missing. ", err)
@@ -58,7 +57,6 @@ func loadConfig(path string) configuration {
 }
 
 func indexHandler(response http.ResponseWriter, request *http.Request) {
-	log.Println(" ################## indexHandler ##################")
 	_, err := fmt.Fprintf(response, "%s", "Hello World")
 	if err != nil {
 		log.Fatal(err)
@@ -142,11 +140,20 @@ func printMap(inputMap map[string]string, prefix string) {
 		if key == "from" || key == "html" {
 			fmt.Println(prefix, "Key:", key, " === ", prefix, "Value:", value)
 		}
+		if key == "from" {
+			p1 := strings.Index(value, "<")
+			log.Println("TRIM STRING ", value[p1:])
+			//from email processing
+		}
+		if key == "html" {
+			htmlString := value
+			fmt.Println("htmlString ", htmlString)
+			//html processing
+		}
 	}
 }
 
 func main() {
-	log.Println(" ################## main ##################")
 	if len(os.Args) > 1 {
 		// Test Sender
 		path := os.Args[1]
