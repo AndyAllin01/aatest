@@ -175,7 +175,7 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 			log.Println(" ////////////////////////////////////////////////////////////////////////// ")
 			log.Println(" HAVE WE JUST READ THE ENTIRE EMAIL HERE? ")
 			log.Println(" ////////////////////////////////////////////////////////////////////////// ")
-			log.Println(" IF SO, IT'S IN THE value FIELD ", value)
+			log.Println(" IF SO, IT'S IN THE value FIELD ", string(value))
 
 			if err != nil {
 				log.Fatal(err)
