@@ -104,6 +104,7 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 				log.Println("OUTPUT STRUCT ", oStruct)
 				//populated basic struct with order details, now get coords
 				LIQString := formatReqString(oStruct)
+				log.Println("################### LIQSTRING ", LIQString)
 				//get coords of delivery address from LocationIQ API call
 				dLat, dLng, err := MakeRequest(LIQString)
 				if err != nil {
