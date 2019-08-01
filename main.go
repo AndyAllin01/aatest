@@ -67,7 +67,6 @@ func Parse(w http.ResponseWriter, req *http.Request) {
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -109,7 +108,7 @@ func indexHandler(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func getBoundary(value string, contentType string) (string, *strings.Reader) {
+/*func getBoundary(value string, contentType string) (string, *strings.Reader) {
 	log.Println(" ################## getBoundary ##################")
 	body := strings.NewReader(value)
 	bodySplit := strings.Split(string(value), contentType)
@@ -121,7 +120,7 @@ func getBoundary(value string, contentType string) (string, *strings.Reader) {
 	}
 	boundary := lines[0][9:]
 	return boundary, body
-}
+}*/
 
 func inboundHandler(response http.ResponseWriter, request *http.Request) {
 	log.Println(" ################## inboundHandler ##################")
@@ -224,7 +223,8 @@ func printMap(inputMap map[string]string, prefix string) {
 		fmt.Println(prefix, "Key:", key, " ", prefix, "Value:", value)
 	}
 }
-func handleRawEmail(value []byte, parsedRawEmail map[string]string, rawFiles map[string]string) {
+
+/*func handleRawEmail(value []byte, parsedRawEmail map[string]string, rawFiles map[string]string) {
 	log.Println(" ################## handleRawEmail ##################")
 	boundary, body := getBoundary(string(value), "Content-Type: multipart/mixed; ")
 	raw := multipart.NewReader(body, boundary)
@@ -262,7 +262,7 @@ func handleRawEmail(value []byte, parsedRawEmail map[string]string, rawFiles map
 			rawFiles[header] = string(value)
 		}
 	}
-}
+}*/
 
 func main() {
 	log.Println(" ################## main ##################")
