@@ -32,16 +32,26 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/buger/jsonparser"
 	"github.com/sendgrid/rest"
 )
 
+const (
+	//ReqStr is base URL used to build up the LocationIQ search request string
+	ReqStr = "https://us1.locationiq.com/v1/search.php?"
+)
+
+var LocationIQKey string
+
 type configuration struct {
-	Endpoint string `json:"endpoint"`
-	Port     string `json:"port"`
+	Endpoint      string `json:"endpoint"`
+	Port          string `json:"port"`
+	LocationIQKey string `json:"locationiqkey"`
 }
 
 func loadConfig(path string) configuration {
@@ -65,7 +75,6 @@ func indexHandler(response http.ResponseWriter, request *http.Request) {
 }
 
 func inboundHandler(response http.ResponseWriter, request *http.Request) {
-	log.Println(" ################## inboundHandler ##################")
 	mediaType, params, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
 	if err != nil {
 		log.Fatal(err)
@@ -90,7 +99,22 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 				// We have finished parsing, do something with the parsed data
 				fmt.Printf("PARSED EMAIL %+v\n", parsedEmail)
 
-				printMap(parsedEmail, "")
+				oStruct := printMap(parsedEmail, "")
+
+				log.Println("OUTPUT STRUCT ", oStruct)
+				//populated basic struct with order details, now get coords
+				LIQString := formatReqString(oStruct)
+				//get coords of delivery address from LocationIQ API call
+				dLat, dLng, err := MakeRequest(LIQString)
+				if err != nil {
+					log.Println("LocationIQ error getting delivery coords")
+				}
+				log.Println("DELIVERY COORDS ", dLat, dLng)
+				//all available fields from the email are now parsed into the OrderInfo struct
+				//now need to convert into Captain Request struct
+
+				//Write details to postgresql:
+				// inbound html, json captain request, response, orderid, (time, customer?)
 
 				// Twilio SendGrid needs a 200 OK response to stop POSTing
 				response.WriteHeader(http.StatusOK)
@@ -124,6 +148,56 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 		}
 	}
 }
+
+//formatReqString formats and returns a LocationIQ request URL based on the address in the
+//parsed email
+func formatReqString(o OrderInfo) string {
+	baseURL, err := url.Parse(ReqStr)
+	if err != nil {
+		fmt.Println("Malformed URL: ", err.Error())
+		return ""
+	}
+	params := url.Values{}
+	params.Add("format", "json")
+	params.Add("key", LocationIQKey)
+	loc := o.FullAddr
+	params.Add("q", loc)
+	baseURL.RawQuery = params.Encode()
+	return baseURL.String()
+}
+
+//MakeRequest sends request to LocationIQ service and returns the lat/lng coords for the address passed in
+func MakeRequest(target string) (float64, float64, error) {
+	resp, err := http.Get(target)
+	//	resp, err := http.Get("https://us1.locationiq.com/v1/search.php?key=e397dae178546d&q=35%20Quarry%20Street,Geraldton,Australia&format=json")
+	if err != nil {
+		log.Printf("HTTP request to LocationIQ failed with %s\n", err)
+		return 0, 0, err
+	}
+	respBody, _ := ioutil.ReadAll(resp.Body)
+
+	//Might full address be useful?
+	/*		addr, _, _, err := jsonparser.Get(respBody, "[0]", "display_name")
+			if err != nil {
+				fmt.Println("jsonparser error address", err)
+			}*/
+	lat, _, _, err := jsonparser.Get(respBody, "[0]", "lat")
+	if err != nil {
+		fmt.Println("jsonparser error lat ", err)
+	}
+	lng, _, _, err := jsonparser.Get(respBody, "[0]", "lon")
+	if err != nil {
+		fmt.Println("jsonparser error lng ", err)
+	}
+
+	delivLat, _ := strconv.ParseFloat(string(lat), 64)
+	delivLng, _ := strconv.ParseFloat(string(lng), 64)
+
+	fmt.Println("DELIV COORDS ", delivLat, delivLng)
+	//	log.Println(string(respBody))
+	return delivLat, delivLng, nil
+}
+
 func handleHeaders(value []byte, emailHeader map[string]string) {
 	s := strings.Split(string(value), "\n")
 	var a []string
@@ -136,7 +210,7 @@ func handleHeaders(value []byte, emailHeader map[string]string) {
 	}
 }
 
-func printMap(inputMap map[string]string, prefix string) {
+func printMap(inputMap map[string]string, prefix string) OrderInfo {
 	var str, htmlString string
 	for key, value := range inputMap {
 		if key == "from" || key == "html" {
@@ -156,7 +230,7 @@ func printMap(inputMap map[string]string, prefix string) {
 		}
 	}
 	filledStruct := composeStruct(htmlString, str)
-	log.Printf("FILLED STRUCT %+v\n", filledStruct)
+	return filledStruct
 }
 
 //composeStruct receives a string of html and parses this into readable
