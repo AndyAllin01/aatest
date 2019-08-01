@@ -99,7 +99,7 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 			if err == io.EOF {
 				// We have finished parsing, do something with the parsed data
 				oStruct := printMap(parsedEmail, "")
-				log.Println("OUTPUT STRUCT ", oStruct)
+				log.Printf("OUTPUT STRUCT %+v\n", oStruct)
 				//populated basic struct with order details, now format LocationIQ req string
 				LIQString := formatReqString(oStruct)
 				//get coords of delivery address from LocationIQ API call
