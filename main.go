@@ -135,8 +135,8 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 		parsedEmail := make(map[string]string)
 		emailHeader := make(map[string]string)
 		binaryFiles := make(map[string][]byte)
-		parsedRawEmail := make(map[string]string)
-		rawFiles := make(map[string]string)
+		//	parsedRawEmail := make(map[string]string)
+		//	rawFiles := make(map[string]string)
 		for {
 			p, err := mr.NextPart()
 			// We have found an attachment with binary data
