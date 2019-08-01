@@ -46,6 +46,7 @@ const (
 	ReqStr = "https://us1.locationiq.com/v1/search.php?"
 )
 
+//LocationIQKey API key
 var LocationIQKey string
 
 type configuration struct {
@@ -64,7 +65,6 @@ func loadConfig(path string) configuration {
 	if err != nil {
 		log.Fatal("Config Parse Error: ", err)
 	}
-	log.Println("########### CONFIG ##############", conf)
 	return conf
 }
 
@@ -98,14 +98,9 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 			}
 			if err == io.EOF {
 				// We have finished parsing, do something with the parsed data
-				fmt.Printf("PARSED EMAIL %+v\n", parsedEmail)
-
 				oStruct := printMap(parsedEmail, "")
-
-				log.Println("OUTPUT STRUCT ", oStruct)
-				//populated basic struct with order details, now get coords
+				//populated basic struct with order details, now format LocationIQ req string
 				LIQString := formatReqString(oStruct)
-				log.Println("################### LIQSTRING ", LIQString)
 				//get coords of delivery address from LocationIQ API call
 				dLat, dLng, err := MakeRequest(LIQString)
 				if err != nil {
@@ -161,11 +156,8 @@ func formatReqString(o OrderInfo) string {
 	}
 	params := url.Values{}
 	params.Add("format", "json")
-	log.Println("=================================", LocationIQKey)
 	params.Add("key", LocationIQKey)
-	log.Println("=================================", o.FullAddr)
 	loc := o.FullAddr
-	log.Println("=================================", loc)
 	params.Add("q", loc)
 	baseURL.RawQuery = params.Encode()
 	return baseURL.String()
@@ -198,8 +190,6 @@ func MakeRequest(target string) (float64, float64, error) {
 	delivLat, _ := strconv.ParseFloat(string(lat), 64)
 	delivLng, _ := strconv.ParseFloat(string(lng), 64)
 
-	fmt.Println("DELIV COORDS ", delivLat, delivLng)
-	//	log.Println(string(respBody))
 	return delivLat, delivLng, nil
 }
 
@@ -225,13 +215,9 @@ func printMap(inputMap map[string]string, prefix string) OrderInfo {
 			p1 := strings.Index(value, "<")
 			str = value[p1+1:]
 			str = str[:len(str)-1]
-			log.Println("TRIMMED STRING ", str)
-			//from email processing
 		}
 		if key == "html" {
 			htmlString = value
-			fmt.Println("htmlString ", htmlString)
-			//html processing
 		}
 	}
 	filledStruct := composeStruct(htmlString, str)
