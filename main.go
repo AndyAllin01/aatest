@@ -196,9 +196,9 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 			delete(parsedEmail, "headers")
 
 			// We have a raw message
-			if header == "email" {
-				handleRawEmail(value, parsedRawEmail, rawFiles)
-			}
+			/*		if header == "email" {
+					handleRawEmail(value, parsedRawEmail, rawFiles)
+				}*/
 			// Since we've parsed this header, we can delete the original
 			delete(parsedEmail, "email")
 		}
