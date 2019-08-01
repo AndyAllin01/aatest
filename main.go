@@ -1,16 +1,5 @@
-/*package main
-
-import (
-	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
-
-	_ "github.com/sendgrid/sendgrid-go"
-)
-
 //test captain API
-
+/*
 func main() {
 	//CAPTAIN TEST:
 	/*
@@ -28,41 +17,8 @@ func main() {
 			resp, err:=client.CreateOrder()
 
 
-	//SENDGRID TEST:
 
-	http.HandleFunc("/upload", Parse)
-	err := http.ListenAndServe(":3000", nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
-
-}
-
-func Parse(w http.ResponseWriter, req *http.Request) {
-	//Get Email Values
-	to := req.FormValue("from")
-	subject := req.FormValue("subject")
-	body := req.FormValue("text")
-
-	fmt.Println("TO      ", to)
-	fmt.Println("SUBJECT ", subject)
-	fmt.Println("BODY    ", body)
-
-	//Get Uploaded File
-	file, handler, err := req.FormFile("attachment1")
-	if err != nil {
-		fmt.Println(err)
-	}
-	data, err := ioutil.ReadAll(file)
-	if err != nil {
-		fmt.Println(err)
-	}
-	err = ioutil.WriteFile(handler.Filename, data, 0777)
-	if err != nil {
-		fmt.Println(err)
-	}
-}*/
-
+*/
 //STANDARD SENDGRID PARSER
 package main
 
@@ -151,6 +107,8 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 			if err == io.EOF {
 				//				log.Println(" ################## inboundHandler ################## DDDD")
 				// We have finished parsing, do something with the parsed data
+				fmt.Printf("PARSED EMAIL %+v\n", parsedEmail)
+
 				printMap(parsedEmail, "")
 
 				//ONLY NEED parsedEmail?
@@ -318,10 +276,8 @@ func main() {
 
 func determineListenAddress() (string, error) {
 	log.Println(" ################## determineListenAddress ##################")
-	//##//	log.Println("DETERMINELISTENADDRESS")
 	port := os.Getenv("PORT")
 	if port == "" {
-		//		port = "80"
 		port = os.Getenv("PORT")
 	}
 	return ":" + port, nil
