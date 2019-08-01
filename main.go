@@ -88,6 +88,7 @@ type configuration struct {
 }
 
 func loadConfig(path string) configuration {
+	log.Println(" ################## loadConfig ##################")
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal("Config File Missing. ", err)
@@ -101,6 +102,7 @@ func loadConfig(path string) configuration {
 }
 
 func indexHandler(response http.ResponseWriter, request *http.Request) {
+	log.Println(" ################## indexHandler ##################")
 	_, err := fmt.Fprintf(response, "%s", "Hello World")
 	if err != nil {
 		log.Fatal(err)
@@ -108,6 +110,7 @@ func indexHandler(response http.ResponseWriter, request *http.Request) {
 }
 
 func getBoundary(value string, contentType string) (string, *strings.Reader) {
+	log.Println(" ################## getBoundary ##################")
 	body := strings.NewReader(value)
 	bodySplit := strings.Split(string(value), contentType)
 	scanner := bufio.NewScanner(strings.NewReader(bodySplit[1]))
@@ -121,6 +124,7 @@ func getBoundary(value string, contentType string) (string, *strings.Reader) {
 }
 
 func inboundHandler(response http.ResponseWriter, request *http.Request) {
+	log.Println(" ################## inboundHandler ##################")
 	mediaType, params, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
 	if err != nil {
 		log.Fatal(err)
@@ -190,6 +194,7 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 	}
 }
 func handleHeaders(value []byte, emailHeader map[string]string) {
+	log.Println(" ################## handleHeaders ##################")
 	s := strings.Split(string(value), "\n")
 	var a []string
 	for _, v := range s {
@@ -202,11 +207,13 @@ func handleHeaders(value []byte, emailHeader map[string]string) {
 }
 
 func printMap(inputMap map[string]string, prefix string) {
+	log.Println(" ################## printMap ##################")
 	for key, value := range inputMap {
 		fmt.Println(prefix, "Key:", key, " ", prefix, "Value:", value)
 	}
 }
 func handleRawEmail(value []byte, parsedRawEmail map[string]string, rawFiles map[string]string) {
+	log.Println(" ################## handleRawEmail ##################")
 	boundary, body := getBoundary(string(value), "Content-Type: multipart/mixed; ")
 	raw := multipart.NewReader(body, boundary)
 	for {
@@ -246,6 +253,7 @@ func handleRawEmail(value []byte, parsedRawEmail map[string]string, rawFiles map
 }
 
 func main() {
+	log.Println(" ################## main ##################")
 	if len(os.Args) > 1 {
 		// Test Sender
 		path := os.Args[1]
@@ -289,6 +297,7 @@ func main() {
 }
 
 func determineListenAddress() (string, error) {
+	log.Println(" ################## determineListenAddress ##################")
 	//##//	log.Println("DETERMINELISTENADDRESS")
 	port := os.Getenv("PORT")
 	if port == "" {
