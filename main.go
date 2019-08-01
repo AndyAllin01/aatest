@@ -279,7 +279,7 @@ func main() {
 			port = conf.Port
 		}
 		if err := http.ListenAndServe(port, nil); err != nil {
-			log.Fatalln("ListenAndServe Error")
+			log.Fatalln("ListenAndServe Error", err)
 		}
 	}
 }
