@@ -405,7 +405,7 @@ func runInits() error {
 
 	//connect, open and ping db
 	var err error
-	db, err = sql.Open("postgres", "postgres://bond:password@localhost/bookstore?sslmode=disable") //dummy db - replace with actual parse db
+	db, err = sql.Open("postgres", os.Getenv("DATABASE_URL")) //dummy db - replace with actual parse db
 	if err != nil {
 		return errors.New("cannot open database")
 	}
