@@ -1,25 +1,3 @@
-//test captain API
-/*
-func main() {
-	//CAPTAIN TEST:
-	/*
-		fmt.Println("CAPTAIN TEST")
-		client := captain.NewClient()
-
-		fmt.Printf("client %+v\n", client)
-
-			instrs := "TEST SPECIAL INSTRS"
-			order := &captain.Order{
-				SpecialInstructions: &instrs,
-			}
-			fmt.Printf("order %+v\n", order)
-
-			resp, err:=client.CreateOrder()
-
-
-
-*/
-//STANDARD SENDGRID PARSER
 package main
 
 import (
@@ -53,6 +31,13 @@ type configuration struct {
 	Endpoint      string `json:"endpoint"`
 	Port          string `json:"port"`
 	LocationIQKey string `json:"locationiqkey"`
+}
+
+type eventLog struct {
+	inboundHTML     string
+	captainRequest  string
+	captainResponse string
+	orderID         string
 }
 
 func loadConfig(path string) configuration {
@@ -113,6 +98,7 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 
 				//Write details to postgresql:
 				// inbound html, json captain request, response, orderid, (time, customer?)
+				x, err := dbWrite()
 
 				// Twilio SendGrid needs a 200 OK response to stop POSTing
 				response.WriteHeader(http.StatusOK)
@@ -146,6 +132,22 @@ func inboundHandler(response http.ResponseWriter, request *http.Request) {
 		}
 	}
 }
+
+
+//dbWrite takes details of the completed transaction and writes to postgresql DB
+//to persist the data
+func dbWrite() {
+
+}
+
+
+
+
+
+
+
+
+
 
 //formatReqString formats and returns a LocationIQ request URL based on the address in the
 //parsed email
@@ -379,6 +381,10 @@ func main() {
 			log.Fatal("Check your Filepath. ", err)
 		}
 	} else {
+		err:= runInits()
+		if err!=nil{
+			log.Fatal("initialzation error. Cannot proceed.", err)
+		}
 		conf := loadConfig("./conf.json")
 		LocationIQKey = conf.LocationIQKey
 		http.HandleFunc("/", indexHandler)
@@ -396,6 +402,28 @@ func main() {
 			log.Fatalln("ListenAndServe Error", err)
 		}
 	}
+}
+
+//runInits sets up program environment and one-off initialization
+func runInits() error {
+	log.SetPrefix("PARSER LOG : ")
+	log.SetFlags(log.Ldate | log.Lmicroseconds)
+	log.Println("PARSER SERVER STARTED")
+
+	//connect, open and ping db
+	var err error
+	db, err = sql.Open("postgres", "postgres://bond:password@localhost/bookstore?sslmode=disable") //dummy db - replace with actual parse db
+	if err != nil {
+		return errors.New("cannot open database")
+	}
+
+	err = db.Ping()
+	if err != nil {
+		return errors.New("cannot connect to database")
+	}
+	log.Println("Connected to database")
+
+	return nil
 }
 
 func determineListenAddress() (string, error) {
